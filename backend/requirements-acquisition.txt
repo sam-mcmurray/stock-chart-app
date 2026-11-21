@@ -1,0 +1,3 @@
+# Subset of requirements.txt; the market-data downloader does not load ML models.
+python-dotenv
+requests

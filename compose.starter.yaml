@@ -1,0 +1,124 @@
+# Standalone opt-in installation. Never combine with docker-compose.yml.
+name: stockapp-starter
+
+x-api: &api
+  build:
+    context: ./backend
+  env_file: ./.starter/backend.env
+  environment: &environment
+    DATABASE_URL: postgresql://postgres:postgres@db:5432/stockapp
+    REDIS_URL: redis://redis:6379/0
+    NEO4J_URL: bolt://neo4j:7687
+    NEO4J_USER: ""
+    NEO4J_PASSWORD: ""
+    QDRANT_URL: http://qdrant:6333
+    QDRANT_NEWS_COLLECTION: news
+    QDRANT_GDELT_EVENT_COLLECTION: gdelt_events
+    HF_HOME: /data/huggingface
+    SCHWAB_REDIRECT_URI: https://127.0.0.1:18443/auth/callback
+    FRONTEND_URL: https://127.0.0.1:13000/
+    CORS_ALLOW_ORIGINS: https://127.0.0.1:13000
+    SESSION_COOKIE_NAME: stockapp_starter_session
+    CSRF_COOKIE_NAME: stockapp_starter_csrf
+    RUN_API_EMBEDDED_WORKERS: "false"
+    GDELT_EVENT_QUEUE_CONSUMER_ENABLED: "false"
+    NEWS_INDEX_QUEUE_CONSUMER_ENABLED: "false"
+    NEWS_CLEANUP_QUEUE_CONSUMER_ENABLED: "false"
+    AGENT_EXECUTE_TRADES: "false"
+    AGENT_LIVE_ENTRY_APPROVED: "false"
+    AGENT_EXIT_SUBMIT_ENABLED: "false"
+    AGENT_BROKER_PROTECTIVE_STOPS_ENABLED: "false"
+    AGENT_LEGACY_STOP_LOSS_ENABLED: "false"
+    AGENT_TRADING_KILL_SWITCH: "true"
+  volumes:
+    - starter_models:/data/huggingface
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_healthy}
+    neo4j: {condition: service_healthy}
+    qdrant: {condition: service_started}
+
+services:
+  api:
+    <<: *api
+    volumes:
+      - starter_models:/data/huggingface
+      - ./.starter/certs:/certs:ro
+    ports: ["127.0.0.1:18443:8443"]
+    command: [uvicorn, "main:app", --host, "0.0.0.0", --port, "8443", --ssl-certfile, /certs/server.crt, --ssl-keyfile, /certs/server.key]
+    healthcheck:
+      test: [CMD, python, -c, "import ssl,urllib.request; urllib.request.urlopen('https://127.0.0.1:8443/healthz',context=ssl._create_unverified_context(),timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.starter
+      target: dev
+    environment:
+      VITE_API_BASE: https://127.0.0.1:18443
+      VITE_CSRF_COOKIE_NAME: stockapp_starter_csrf
+      VITE_TLS_CERT_FILE: /certs/server.crt
+      VITE_TLS_KEY_FILE: /certs/server.key
+    volumes:
+      - ./.starter/certs:/certs:ro
+    ports: ["127.0.0.1:13000:3000"]
+    depends_on:
+      api: {condition: service_healthy}
+  scanner_worker:
+    <<: *api
+    profiles: [scanner]
+    command: [python, -u, -m, workers.scanner_worker]
+  account_stream_worker:
+    <<: *api
+    profiles: [scanner]
+    command: [python, -u, -m, workers.account_stream_worker]
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: stockapp
+    volumes:
+      - starter_db:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/stockapp.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d stockapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, "yes"]
+    volumes: ["starter_redis:/data"]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: none
+      NEO4J_dbms_usage__report_enabled: "false"
+    volumes: ["starter_graph:/data"]
+    healthcheck:
+      test: [CMD, cypher-shell, -a, "bolt://127.0.0.1:7687", "RETURN 1;"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+  qdrant:
+    image: qdrant/qdrant:latest
+    environment:
+      QDRANT__TELEMETRY_DISABLED: "true"
+    volumes: ["starter_vectors:/qdrant/storage"]
+
+volumes:
+  starter_db:
+  starter_redis:
+  starter_graph:
+  starter_vectors:
+  starter_models:

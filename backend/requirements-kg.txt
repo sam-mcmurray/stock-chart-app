@@ -1,0 +1,7 @@
+feedparser
+neo4j
+numpy==1.26.4
+relik==1.0.6
+setuptools>=69,<81
+torch
+transformers

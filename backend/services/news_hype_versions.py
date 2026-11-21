@@ -1,0 +1,5 @@
+"""Shared version identifiers without loading feature-generation dependencies."""
+FEATURE_VERSION = "news-hype-v1"
+WATCH_PRIORITY_FEATURE_VERSION = "news-hype-v2-watch-priority"
+GENERATOR_VERSION = "news-hype-candidate-generator-v1"
+WATCH_PRIORITY_GENERATOR_VERSION = "news-hype-candidate-generator-v2-watch-priority"

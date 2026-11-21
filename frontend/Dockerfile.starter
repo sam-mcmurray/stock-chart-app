@@ -1,0 +1,13 @@
+# Separate starter build; the working frontend source is never rewritten.
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci && npm rebuild esbuild
+
+FROM deps AS dev
+COPY . .
+# Apply host-scoped CSRF isolation inside this image only. Idempotent when the
+# reviewed public source already includes this adjustment.
+RUN node --input-type=module -e "import fs from 'node:fs'; const p='src/lib/api.js'; fs.writeFileSync(p,fs.readFileSync(p,'utf8').replaceAll(\"readCookie('csrf')\",\"readCookie(import.meta.env.VITE_CSRF_COOKIE_NAME || 'csrf')\"));"
+EXPOSE 3000
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]

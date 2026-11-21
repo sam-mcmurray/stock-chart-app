@@ -1,0 +1,2 @@
+# Add to the existing backend dependencies in an isolated training environment.
+gymnasium==1.2.3

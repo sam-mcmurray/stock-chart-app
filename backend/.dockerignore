@@ -1,0 +1,21 @@
+.env
+.env.*
+!.env.example
+!.env.sample
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+
+# Keep private planning and generated reports out of image build contexts.
+*PROGRESS*.md
+*GOALS*.md
+*progress*.md
+*goals*.md
+*PLAN*.md
+*NOTES*.md
+news-llm-*.json
+reports/
+private/
