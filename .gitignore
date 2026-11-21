@@ -1,0 +1,112 @@
+# Python cache and virtual envs
+__pycache__/
+*.pyc
+.venv/
+env/
+
+# Node/React artifacts
+node_modules/
+build/
+dist/
+
+# Env and secrets
+.env
+*.env
+backend/auth/cache/
+backend/.env
+backend/__pycache__/
+
+# Local data stores
+data/drl-training/
+data/sec-share-history/*.json
+data/sec-share-history/.*.lock
+data/sec-share-history/.*.part
+data/alpaca/*_sip_raw.json
+data/alpaca/*_replay.json
+data/alpaca/.*.part
+data/alpaca/.*.lock
+data/hfdatalibrary/*.parquet
+data/hfdatalibrary/*_replay.json
+data/hfdatalibrary/.*.part
+data/hfdatalibrary/.*.lock
+data/chroma/
+data/redis/
+data/neo4j/
+postgres_data/
+
+# TLS certs/keys
+certs/*.key
+certs/*.crt
+certs/*.pem
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Token caches
+schwab_tokens.json
+cache/
+data/alpaca-actions/*.json
+data/alpaca-actions/.*.lock
+data/alpaca-actions/.*.part
+
+# Public repository boundary: runtime data is local, including model-server keys.
+# Keep only hand-written data documentation eligible for publication.
+/data/**
+!/data/**/
+!/data/**/README.md
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_ed25519*
+id_rsa*
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+*.har
+*.pt
+*.pth
+*.safetensors
+.pytest_cache/
+playwright-report/
+test-results/
+backend/news-llm-*.json
+docker-compose.override.yml
+compose.override.yaml
+
+# Personal planning and operational notes stay on this machine.
+*PROGRESS*.md
+*GOALS*.md
+*progress*.md
+*goals*.md
+*PLAN*.md
+*plan*.md
+*NOTES*.md
+*notes*.md
+LIVE_SCHWAB_VALIDATION_CHECKLIST.md
+reports/
+private/
+local/
+.starter/
+public-release/
+
+# Local portal snapshots and historical operational/research writeups.
+/docs/schwab/
+/docs/trading/
+/docs/news/
+/docs/vector/
+/docs/gdelt/
+/docs/calendar/
+/backend/test/fixtures/news_llm_real_regressions_*.json
+*PROGRESS*.txt
+*GOALS*.txt
+*progress*.json
+*goals*.json
